@@ -9,9 +9,9 @@ def csv_parser(csv_data):
     """Функция осуществляет преобразование данных в список, пригодный для комбинирования"""
     reader = list(csv.DictReader(csv_data, delimiter=","))
 
-    list_of_lists = list()
+    list_of_sets = list()
     for _ in reader[0]:
-        list_of_lists.append(list())
+        list_of_sets.append(set())
 
     for line in reader:
         i = 0
@@ -21,9 +21,10 @@ def csv_parser(csv_data):
                     line[key] = "-"
                 elif line[key] == "1":
                     line[key] = "+"
-                list_of_lists[i].append(line[key].strip())
+                list_of_sets[i].add(line[key].strip())
             i += 1
-    return list_of_lists
+    print(list_of_sets)
+    return list_of_sets
 
 
 def file_creator(list_of_data):
