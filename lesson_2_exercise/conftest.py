@@ -89,10 +89,10 @@ def int_fixture(request, begin_module_fixture):
 @pytest.fixture(scope="module")
 def begin_module_fixture(request, open_session_fixture):
     """Фикстура объявляет тестирование модуля"""
-    print("\n=====================Module begin=====================")
+    print("\n==================== Module begin ====================")
 
     def ended_module_fixture():
-        print("\n=====================Module ended=====================")
+        print("\n==================== Module ended ====================")
 
     request.addfinalizer(ended_module_fixture)
 
@@ -100,9 +100,9 @@ def begin_module_fixture(request, open_session_fixture):
 @pytest.fixture(scope="session")
 def open_session_fixture(request):
     """Фикстура объявляет открытие сессии"""
-    print("\n+++++++++++++++++Test session started++++++++++++++++++")
+    print("\n++++++++++++++++ Test session started ++++++++++++++++")
 
-    def close_file_fixture():
-        print("\n+++++++++++++++++Test session closed++++++++++++++++++")
+    def close_session_fixture():
+        print("\n++++++++++++++++ Test session closed +++++++++++++++++")
 
-    request.addfinalizer(close_file_fixture)
+    request.addfinalizer(close_session_fixture)
