@@ -23,20 +23,17 @@ def csv_parser(csv_data):
                     line[key] = "+"
                 list_of_sets[i].add(line[key].strip())
             i += 1
-    print(list_of_sets)
     return list_of_sets
 
 
 def file_creator(list_of_data):
-    """Функция создает список всех комбинаций всех значений всех параметров"""
-    writing_list = list()
-    for name in list_of_data[0]:
-        for city in list_of_data[1]:
-            for card in list_of_data[2]:
-                for deposit in list_of_data[3]:
-                    for mortgage in list_of_data[4]:
-                        writing_list.append(name + "\t" + city + "\t" +
-                                            card + "\t" + deposit + "\t" + mortgage + "\n")
+    """Функция создает генератор всех комбинаций всех значений всех параметров"""
+    writing_list = (name + "\t" + city + "\t" + card + "\t" + deposit + "\t" + mortgage + "\n"
+                    for name in list_of_data[0]
+                    for city in list_of_data[1]
+                    for card in list_of_data[2]
+                    for deposit in list_of_data[3]
+                    for mortgage in list_of_data[4])
     return writing_list
 
 
@@ -44,8 +41,8 @@ def file_recorder(list_of_data):
     """Функция осуществляет построчную запись в файл результаты.txt"""
     with open("результаты.txt", "w") as recording_data:
         i = 0
-        for _ in list_of_data:
-            recording_data.write(list_of_data[i])
+        for record in list_of_data:
+            recording_data.write(record)
             i += 1
 
             # Ограничитель количества записей в файле
