@@ -1,9 +1,11 @@
+"""Скрипт для установки и настройки FTP-сервера через SSH соединение"""
 import argparse
 import logging
 import paramiko
 
 
 def interpretator_mode(args, log):
+    """Функция для запуска скрипта в режиме интерпритатора"""
     print(f"Script runs in interpretator mode. You can execute commands on "
           f"remote host {args.host} by means ssh connection. "
           f"Type 'quit' or 'exit' to stop.")
@@ -16,6 +18,7 @@ def interpretator_mode(args, log):
 
 
 def interactive_mode(args):
+    """Функция для запуска скрипта в интерактивном режиме"""
     print(f"This script helps you to setup FTP server on "
           f"remote host {args.host} by means ssh connection.")
     while True:
@@ -24,8 +27,8 @@ def interactive_mode(args):
               "2) Change FTP-server port\n"
               "3) Add new user\n"
               "4) Delete user\n"
-              "5) Restart FTP-Server and exit\n"
-              "For exit without restart input other command")
+              "5) Exit without restarting\n"
+              "To restart FTP-Server and exit enter any another command")
         choice = input()
         if choice == "1":
             install_vsftpd(args, logger)
@@ -37,13 +40,14 @@ def interactive_mode(args):
         elif choice == "4":
             del_user(args, logger)
         elif choice == "5":
-            restart_server(args, logger)
             break
         else:
+            restart_server(args, logger)
             break
 
 
 def install_vsftpd(args, log):
+    """Функция для установки FTP-сервера"""
     result = execute_command(args, "which vsftpd")
     log.info(result)
     if not result:
@@ -60,6 +64,7 @@ def install_vsftpd(args, log):
 
 
 def configure_vsftpd(args, log):
+    """Функция для настройки FTP-сервера"""
     config = """listen=NO
                 listen_ipv6=YES
                 anonymous_enable=NO
@@ -99,18 +104,19 @@ def configure_vsftpd(args, log):
 
 
 def change_port(args, log):
+    """Функция для смены управляющего порта"""
     result = execute_command(args, "which vsftpd")
     log.info(result)
     if result:
-        port = input("Input FTP-server port(Default: 20) ")
+        port = input("Input FTP-server control channel port(Default: 21) ")
 
         try:
             int(port)
         except ValueError:
-            print("Used default port: 20")
-            param = "listen_port=20"
+            print("Used default control channel port: 21")
+            param = "listen_port=21"
         else:
-            print("Used port: " + port)
+            print("Used control channel port: " + port)
             param = "listen_port=" + port
 
         command = "sudo sed -i '/connect_from_port_20=YES/ i\\" + param + "' /etc/vsftpd.conf"
@@ -124,6 +130,7 @@ def change_port(args, log):
 
 
 def add_user(args, log):
+    """Функция для добавления пользователя"""
     name = input("Enter username: ")
     checkout = "cat /etc/passwd | grep ^" + name
     result = execute_command(args, checkout)
@@ -132,12 +139,15 @@ def add_user(args, log):
         passw = input("Enter password : ")
         confirmpass = input("Confirm password : ")
         if passw == confirmpass:
-            result = execute_command(args, "sudo groupadd ftp_users")
-            log.info(result)
-            command = "sudo useradd -p " + passw + " -s /bin/bash -G ftp_users -m " + name
+            command = "sudo useradd -m -U " + name
             result = execute_command(args, command)
             log.info(result)
-            # result = execute_command(args, "chmod 555 /home/user")
+            command = "sudo bash -c 'echo " + name + ":" + passw + "> cache'"
+            result = execute_command(args, command)
+            log.info(result)
+            command = "sudo bash -c 'cat cache | chpasswd'"
+            result = execute_command(args, command)
+            log.info(result)
             print("User " + name + " created!")
         else:
             print("Password incorrect.")
@@ -146,9 +156,9 @@ def add_user(args, log):
 
 
 def del_user(args, log):
+    """Функция для удаления пользователя"""
     name = input("Enter user to delete: ")
-    checkout = "cat /etc/group | grep ^ftp_users\.*\\" + name
-    log.debug(checkout)
+    checkout = "cat /etc/passwd | grep ^" + name
     result = execute_command(args, checkout)
     log.info(result)
     if result:
@@ -159,12 +169,13 @@ def del_user(args, log):
             result = execute_command(args, command)
             log.info(result)
         else:
-            print("No user deleted")
+            print("No user deleted.")
     else:
-        print("No such a user created by this script")
+        print("No such a user.")
 
 
 def restart_server(args, log):
+    """Функция для перезагрузки FTP-сервера"""
     result = execute_command(args, "which vsftpd")
     log.info(result)
     if result:
@@ -176,6 +187,7 @@ def restart_server(args, log):
 
 
 def execute_command(args, command):
+    """Функция для выполнения команды"""
     return SSHConnector(args.host, args.user, args.passw, args.port).command(command)
 
 
@@ -197,6 +209,8 @@ class SSHConnector:
         stdin = self.channel.makefile('wb', -1)
         stdout = self.channel.makefile('rb', -1)
         if command.startswith("sudo"):
+            stdin.write(self.secret + "\n")
+            stdin.flush()
             stdin.write(self.secret + "\n")
             stdin.flush()
         result = stdout.read().decode("utf-8")
