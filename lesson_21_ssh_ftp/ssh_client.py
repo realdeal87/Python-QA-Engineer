@@ -22,14 +22,13 @@ def interactive_mode(args):
     print(f"This script helps you to setup FTP server on "
           f"remote host {args.host} by means ssh connection.")
     while True:
-        print("\nChoose your option(1-4):\n"
-              "1) Install vsftpd FTP-server\n"
-              "2) Change FTP-server port\n"
-              "3) Add new user\n"
-              "4) Delete user\n"
-              "5) Exit without restarting\n"
-              "To restart FTP-Server and exit enter any another command")
-        choice = input()
+        choice = input("\nChoose your option(1-4):\n"
+                       "1) Install vsftpd FTP-server\n"
+                       "2) Change FTP-server port\n"
+                       "3) Add new user\n"
+                       "4) Delete user\n"
+                       "5) Exit without restarting\n"
+                       "To restart FTP-Server and exit enter any another command\n")
         if choice == "1":
             install_vsftpd(args, logger)
             configure_vsftpd(args, logger)
@@ -112,7 +111,8 @@ def change_port(args, log):
 
         try:
             int(port)
-        except ValueError:
+        except ValueError as err:
+            log.warning(err)
             print("Used default control channel port: 21")
             param = "listen_port=21"
         else:
@@ -146,6 +146,9 @@ def add_user(args, log):
             result = execute_command(args, command)
             log.info(result)
             command = "sudo bash -c 'cat cache | chpasswd'"
+            result = execute_command(args, command)
+            log.info(result)
+            command = "sudo rm -f cache"
             result = execute_command(args, command)
             log.info(result)
             print("User " + name + " created!")
