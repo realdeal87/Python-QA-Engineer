@@ -214,8 +214,6 @@ class SSHConnector:
         if command.startswith("sudo"):
             stdin.write(self.secret + "\n")
             stdin.flush()
-            stdin.write(self.secret + "\n")
-            stdin.flush()
         result = stdout.read().decode("utf-8")
         self.channel.close()
         self.client.close()
