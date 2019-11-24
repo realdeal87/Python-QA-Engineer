@@ -31,6 +31,7 @@ def connection(host, request, log):
 
     sock.send(request.encode())
     result = sock.recv(4096)
+
     response = ""
 
     while result:
