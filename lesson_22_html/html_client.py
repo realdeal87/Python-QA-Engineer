@@ -42,6 +42,20 @@ def connection(host, request, log):
     return response
 
 
+def response_parser(response, log):
+    """Функция для разделения ответа на код ответв, хедеры и тело ответа"""
+    log.info("\n" + response)
+    response = response.split("\r\n")
+    i = 0
+    for i, n in enumerate(response):
+        if response[i] == "":
+            break
+    code = response[0].split(" ")[1]
+    headers = response[1:i]
+    body = "\r\n".join(response[i:])
+    return code, headers, body
+
+
 if __name__ == "__main__":
 
     logger = logging.getLogger("ssh_client")
@@ -79,4 +93,5 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     hostname, http_request = request_formatter(arguments, logger)
     http_response = connection(hostname, http_request, logger)
-    print(http_response)
+    http_code, http_headers, Http_body = response_parser(http_response, logger)
+    print(http_code, http_headers, Http_body)
