@@ -1,8 +1,53 @@
-"""Скрипт для выполнения HTTP запросов с помощью библиотеки socket"""
+"""Скрипт для выполнения HTTP запросов с помощью библиотеки socket
+и парсинга содержимого тела ответа"""
 import argparse
+import json
 import logging
 import socket
 import ssl
+from html.parser import HTMLParser
+
+
+class MyHTMLParser(HTMLParser):
+    """Класс для парсинга html кода страницы"""
+
+    def __init__(self):
+        self.tags = {}
+        self.text = []
+        self.img = []
+        self.links = []
+        super().__init__()
+
+    def handle_starttag(self, tag, attrs):
+        """Метод обрабатывает открывающийся тег и заполняет статистику по тегам"""
+        if tag in self.tags.keys():
+            self.tags[tag] += 1
+        else:
+            self.tags[tag] = 1
+        if tag in ("img", "a"):
+            for attr in attrs:
+                if attr[0] == "src":
+                    self.img.append(attr[1])
+                if attr[0] == "href":
+                    self.links.append(attr[1])
+
+    def handle_data(self, data):
+        """Метод обрабатывает текст между тегами и заполняет статистику по тексту"""
+        data = "".join(data.split())
+        if data != "":
+            self.text.append(data)
+
+
+def statistics(tags, text, img, links, args):
+    """Функция для формирования статистики по телу ответа"""
+    popular_tags = {k: v for k, v in tags.items() if v == max(tags.values())}
+    stat = {"Resource": args.host + args.url,
+            "Tags": tags,
+            "The most popular tags": popular_tags,
+            "Texts": text,
+            "Images": img,
+            "Links": links}
+    return stat
 
 
 def request_formatter(args, log):
@@ -48,17 +93,17 @@ def response_parser(response, log):
     response = response.split("\r\n")
     i = 0
     for i, n in enumerate(response):
-        if response[i] == "":
+        if n == "":
             break
     code = response[0].split(" ")[1]
     headers = response[1:i]
-    body = "\r\n".join(response[i:])
+    body = "".join(response[i:])
     return code, headers, body
 
 
 if __name__ == "__main__":
 
-    logger = logging.getLogger("ssh_client")
+    logger = logging.getLogger("httр_client")
     logger.setLevel(logging.DEBUG)
     shr = logging.StreamHandler()
     shr.setLevel(logging.DEBUG)
@@ -93,5 +138,14 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     hostname, http_request = request_formatter(arguments, logger)
     http_response = connection(hostname, http_request, logger)
-    http_code, http_headers, Http_body = response_parser(http_response, logger)
-    print(http_code, http_headers, Http_body)
+    http_code, http_headers, http_body = response_parser(http_response, logger)
+    print(http_code, http_headers, http_body)
+    html_parser = MyHTMLParser()
+    html_parser.feed(http_body)
+    statistics = statistics(html_parser.tags, html_parser.text, html_parser.img,
+                            html_parser.links, arguments)
+    print(statistics)
+
+    # Сохранение json файла со статистикой
+    with open("http_client.json", "w") as json_file:
+        json.dump(statistics, json_file)
