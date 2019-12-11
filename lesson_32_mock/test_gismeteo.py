@@ -1,4 +1,3 @@
-import json
 import pytest
 import requests_mock
 
@@ -14,9 +13,11 @@ def mock():
 def test_status_200(mock):
     with open("answer.json", "r") as file:
         data = file.read()
+    print(data)
     mock.get("https://api.gismeteo.net/v2/weather/current/?latitude=1&longtitude=1", text=data, status_code=200)
     response = request_current(1, 1)
     assert response.status_code == 200
+    return response
 
 
 def test_foo(mock):
