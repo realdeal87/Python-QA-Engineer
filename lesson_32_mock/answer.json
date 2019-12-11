@@ -1,0 +1,54 @@
+{
+  "kind": "Obs",
+  "date": {
+        "UTC": "2016-02-01 11:00:00",
+        "unix": 1454324400,
+        "local": "2016-02-01 14:00:00",
+        "time_zone_offset": 180
+  },
+  "temperature": {
+        "air": {
+            "C": 12.6
+        },
+        "comfort": {
+            "C": 12.6
+        },
+        "water": {
+            "C": 12.6
+        }
+  },
+  "description": {
+        "full": "Пасмурно, небольшой дождь"
+  },
+  "humidity": {
+        "percent": 89
+  },
+  "pressure": {
+        "mm_hg_atm": 732
+  },
+  "cloudiness": {
+        "percent": 75,
+        "type": 3
+  },
+  "storm": {
+        "prediction": false
+  },
+  "precipitation": {
+        "type": 1,
+        "amount": null,
+        "intensity": 0
+  },
+  "phenomenon": 51,
+  "icon": "n_c3_rs3_st",
+  "gm": 1,
+  "wind": {
+        "direction": {
+            "degree": 30,
+            "scale_8": 2
+        },
+        "speed": {
+            "m_s": 4
+        }
+  }
+
+}
