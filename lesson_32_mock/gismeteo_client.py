@@ -1,15 +1,24 @@
+"""Клиент для взаимодействия с Gismeteo API"""
 import argparse
 import json
 import requests
 
 
-def request_current(latitude, longtitude, id=None):
+def request_current(latitude, longitude, obj_id=None):
+    """Функция для запроса текущей погоды по координатам или ID объекта"""
     url = "https://api.gismeteo.net/v2/weather/current/"
-    payload = {"latitude": latitude, "longtitude": longtitude}
-    if id:
-        url = url + str(id) + "/"
+    if latitude < -90.0 or latitude > 90.0:
+        raise ValueError("Широта должна быть в диапазоне [-90, 90]")
+    if longitude < -180.0 or longitude > 180.0:
+        raise ValueError("Долгота должна быть в диапазоне [-180, 180]")
+    if obj_id and obj_id < 0:
+        raise ValueError("ID географического объекта не может быть отрицательным")
+
+    payload = {"latitude": latitude, "longtitude": longitude}
+    if obj_id:
+        url = url + str(obj_id) + "/"
         payload = None
-    response = requests.get(url=url, headers=heders(), params=payload)
+    response = requests.get(url=url, headers=headers(), params=payload)
     text = json.loads(response.text)
     if response.status_code == 200:
         success_decorator(text)
@@ -19,9 +28,13 @@ def request_current(latitude, longtitude, id=None):
 
 
 def success_decorator(text):
-    print("\nЗапрос обработан.\nКод ответа сервера: 200",
-          "\n\nТип погодных данных:", text["kind"],
-          "\n\nДата и время данных:"
+    """Функция для обработки полученных данных от успешного запроса"""
+    # Здесь происходит какая-то обработка полученных данных
+    # При недоступном API результат обработки можно увидеть с использованием Mock"
+
+    print("Запрос обработан.\nКод ответа сервера: 200",
+          "\nТип погодных данных:", data_type(text["kind"]),
+          "\nДата и время данных:"
           "\nПо стандарту UTC:", text["date"]["UTC"],
           "\nВ формате UNIX по стандарту UTC:", text["date"]["unix"],
           "\nПо локальному времени географического объекта:", text["date"]["local"],
@@ -29,17 +42,35 @@ def success_decorator(text):
           "географического объекта и временем по UTC:", text["date"]["time_zone_offset"])
 
 
+def data_type(kind):
+    """Функция возвращает тип погодных данных в зависимости от параметра"""
+    # Здесь не дописано возвращение типа "Прогноз"
+    if kind == "Obs":
+        kind = "Наблюдение"
+    return kind
+
+
 def error_decorator(text):
-    print("\nЗапрос не обработан.\nКод ответа сервера:", text["meta"]["code"],
+    """Функция для обработки полученных данных от ошибочного запроса"""
+    # Здесь происходит какая-то обработка полученных данных
+    # При недоступном API результат обработки можно увидеть с использованием Mock"
+    print("Запрос не обработан.\nКод ответа сервера:", text["meta"]["code"],
           "\nТекст сообщения:", text["meta"]["message"])
 
 
 def get_token():
-    return "56b30cb255.3443075"
+    """Функция для запроса валидного токена"""
+    # Здесь происходит запрос к серверу авторизации,
+    # для получения токена по логину и паролю.
+    # Сейчас ничего не возвращается
+    return None
 
 
-def heders():
-    return {"X-Gismeteo-Token": get_token(), "Accept-Encoding": "deflate, gzip"}
+def headers():
+    """Функция для формирования хедеров запроса"""
+    # Здесь происходит формирование хедеров для запроса
+    # Сейчас ничего не возвращается
+    return None
 
 
 if __name__ == '__main__':
