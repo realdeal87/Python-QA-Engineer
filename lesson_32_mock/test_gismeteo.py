@@ -115,5 +115,5 @@ class TestUnits:
 
     @patch("gismeteo_client.data_type", return_value="Прогноз")
     def test_data_type(self, get_token):
-        """Возвращается тип """
+        """Возвращается тип погодных данных Прогноз"""
         assert get_token("Frc") == "Прогноз"
