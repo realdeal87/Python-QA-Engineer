@@ -1,4 +1,4 @@
-"""Тестирования функциональности Drag'n'Drop"""
+"""Тест функциональности Drag'n'Drop для webelement"""
 from selenium.webdriver.common.action_chains import ActionChains
 
 
